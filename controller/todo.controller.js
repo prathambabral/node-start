@@ -16,9 +16,10 @@ async function getSingleTodo(req, res) {
   const { id } = req.params;
   const todo = await Todo.findOne({ _id: id });
   res.render("singleTodo.ejs", {
-    todo: todo.todo,
     status: todo.status,
+    todo: todo.todo,
     id: todo._id,
+    username: req.user.username,
     createdAt: todo.createdAt,
     updatedAt: todo.updatedAt,
   });
@@ -48,12 +49,18 @@ async function updateTodo(req, res) {
 
 async function addTodo(req, res) {
   const { task } = req.body;
-  const todo = await Todo.create({
+  await Todo.create({
     todo: task,
-    status: false,
     user: req.user._id,
+    isPublic: isPublic,
   });
   res.redirect("/todo");
+}
+
+async function getPublicTodos(req, res) {
+  const todos = await Todo.find({ isPublic: true }).populate("user");
+  console.log(todos);
+  res.render("publicTodos", { todos: todos, username: req.user.username });
 }
 
 async function deleteTodo(req, res) {
@@ -68,4 +75,5 @@ module.exports = {
   getTodos,
   addTodo,
   deleteTodo,
+  getPublicTodos,
 };

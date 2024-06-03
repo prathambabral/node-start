@@ -15,6 +15,10 @@ const todoSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
     },
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
