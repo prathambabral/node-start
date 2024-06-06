@@ -1,4 +1,5 @@
 const Todo = require("../model/todo.model.js");
+const User = require("../model/user.model.js");
 // get all todo
 async function getTodos(req, res) {
   const todo = await Todo.find({ user: req.user._id });
@@ -16,8 +17,8 @@ async function getSingleTodo(req, res) {
   const { id } = req.params;
   const todo = await Todo.findOne({ _id: id });
   res.render("singleTodo.ejs", {
-    status: todo.status,
     todo: todo.todo,
+    status: todo.status,
     id: todo._id,
     username: req.user.username,
     createdAt: todo.createdAt,
@@ -39,7 +40,9 @@ async function getSingleTodo(req, res) {
 async function updateTodo(req, res) {
   const { id } = req.params;
   const { task, status } = req.body;
+
   let statusValue = status == "on" ? true : false;
+
   let item = await Todo.updateOne(
     { _id: id },
     { todo: task, status: statusValue }
@@ -48,7 +51,9 @@ async function updateTodo(req, res) {
 }
 
 async function addTodo(req, res) {
-  const { task } = req.body;
+  const { task, setPublic } = req.body;
+
+  let isPublic = setPublic == "on" ? true : false;
   await Todo.create({
     todo: task,
     user: req.user._id,
@@ -58,7 +63,13 @@ async function addTodo(req, res) {
 }
 
 async function getPublicTodos(req, res) {
-  const todos = await Todo.find({ isPublic: true }).populate("user");
+  let pageNumber = req.query.pageNumber ? req.query.pageNumber : 1;
+  let skipNumber = (pageNumber - 1) * 4;
+
+  const todos = await Todo.find({ isPublic: true })
+    .skip(skipNumber)
+    .limit(4)
+    .populate("user");
   console.log(todos);
   res.render("publicTodos", { todos: todos, username: req.user.username });
 }
@@ -69,11 +80,34 @@ async function deleteTodo(req, res) {
   res.redirect("/todo");
 }
 
+function getSearch(req, res) {
+  res.render("search.ejs", {
+    username: req.user.username,
+    todos: null,
+    query: null,
+  });
+}
+
+async function postSearch(req, res) {
+  const { query } = req.body;
+  const todos = await Todo.find({
+    $and: [{ isPublic: true }, { $text: { $search: query } }],
+  });
+  res.render("search.ejs", {
+    username: req.user.username,
+    todos: todos,
+    query: query,
+  });
+}
+
 module.exports = {
   getSingleTodo,
   updateTodo,
   getTodos,
   addTodo,
   deleteTodo,
+  getSingleTodo,
+  postSearch,
+  getSearch,
   getPublicTodos,
 };

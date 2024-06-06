@@ -63,10 +63,12 @@
 const express = require("express");
 
 const app = express(); // instance banana - we can all feature of exprees in  const app
+let dot = require('dotenv').config()
 const db=require("./config/dbconfig.js")
 const cookieParser = require("cookie-parser")
 const auth = require('./middleware/auth.js')
 const path = require("path")
+const port = process.env.PORT || 4000
 // instance_name.req_method(route , function)
 app.set("view engine", "ejs");
 
@@ -79,7 +81,7 @@ let staticPath = path.join(__dirname , "public")
 app.use(express.static(staticPath))
 
 app.get('/',(req,res)=>{
-    res.send('Welcome to todolist')
+    res.render('home.ejs')
 })
 
 app.get('/logout',(req,res)=>{
@@ -87,10 +89,10 @@ app.get('/logout',(req,res)=>{
     res.redirect('/user/login')
 })
 
-app.use('/todo',auth,require("./routes/todo.routes.js"))
+app.use('/todo', auth , require("./routes/todo.routes.js"))
 app.use('/user',require("./routes/user.routes.js"))
 
-app.listen(3000, () => {
+app.listen( port , () => {
   console.log("server started at 3000");
 });
 // const Database = []
